@@ -1,5 +1,17 @@
 package aymeric.projetEcole;
 
+import java.awt.EventQueue;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+
+
+import beans.Emprunt;
+import controller.Controller;
+import helpers.PDO;
+import ihm.IhmMain;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -10,6 +22,12 @@ import junit.framework.TestSuite;
 public class AppTest 
     extends TestCase
 {
+	public static void main(String[] args) {
+		int table[] = {1,2,3,4,5,6,7,8,9};
+		for(int i = 0, j = table.length; i<j; i++ ) {
+			System.out.println(table[i]);
+		};
+	}
     /**
      * Create the test case
      *

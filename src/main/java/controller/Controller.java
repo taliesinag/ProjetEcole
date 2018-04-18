@@ -1,11 +1,15 @@
 package controller;
 
+import java.awt.EventQueue;
 import java.io.File;
 import java.sql.ResultSet;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
+
+
+import org.joda.time.DateTime;
 
 import beans.Emprunt;
 import beans.Livre;
@@ -27,23 +31,36 @@ public class Controller {
 	 * @param USAGERBDD
 	 */
 	public Controller() {
-		boolean dbExist = new File("bibliotheque.db").exists();
-		PDO.init();
-		if (!dbExist) {
-			this.newBdd();
-		}
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					IhmMain window = new IhmMain(Controller.this);
+					Controller.this.ihm = window;
+					window.getframe().setVisible(true);
+					boolean dbExist = new File("bibliotheque.db").exists();
+					PDO.init();
+					if (!dbExist) {
+						newBdd();
+					}
+					init();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
 	}
 
 	/**
 	 * 
 	 * @param ihm
 	 */
-	public void setIhm(IhmMain ihm) {
-		this.ihm = ihm;
+	private void init() {
 		this.setListeUsager();
 		this.setListeLivreDisponible();
-		this.setListeLivreARendre();
+		
 		this.setListeEmprunts();
+		this.setListeLivreARendre();
 
 	}
 
@@ -53,7 +70,7 @@ public class Controller {
 		PDO.create(
 				"CREATE TABLE IF NOT EXISTS Livre(id INTEGER PRIMARY KEY Autoincrement,titre Varchar (25) NOT NULL ,annee Int NOT NULL ,nom_auteur Varchar (50) NOT NULL ,prenom_auteur Varchar (50) ,editeur Varchar (50) NOT NULL);");
 		PDO.create(
-				"CREATE TABLE IF NOT EXISTS Emprunt (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, date_emprunt DATE NOT NULL, date_rendu DATE NOT NULL, id_usager INTEGER NOT NULL REFERENCES Livre (id), id_livre INTEGER NOT NULL REFERENCES Livre (id), FOREIGN KEY (id_usager) REFERENCES Usager (id), FOREIGN KEY (id_livre) REFERENCES Livre (id));");
+				"CREATE TABLE IF NOT EXISTS Emprunt (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, date_emprunt VARCHAR NOT NULL, date_rendu VARCHAR NOT NULL, id_usager INTEGER NOT NULL REFERENCES Livre (id), id_livre INTEGER NOT NULL REFERENCES Livre (id), FOREIGN KEY (id_usager) REFERENCES Usager (id), FOREIGN KEY (id_livre) REFERENCES Livre (id));");
 
 	}
 
@@ -69,40 +86,35 @@ public class Controller {
 		this.setListeUsager();
 	}
 
-	public void RendreLivre(Livre livre) {
-		this.ihm.comboBoxLivreARendre.removeItem(livre);
-		this.listeLivreARendre.remove(livre);
-		this.ihm.comboBoxLivre.addItem(livre);
-		this.listeLivre.add(livre);
-		Emprunt remove = null;
-		for (Emprunt emprunt : this.listeEmprunts) {
-			System.out.println(emprunt.getId_livre() + " : " + livre.getId());
-			if (emprunt.getId_livre() == livre.getId()) {
-				emprunt.setDate_rendu(new Date());
-				emprunt.modifierBdd();
-				remove = emprunt;
-				System.out.println(remove.toString());
-			}
-		}
-		this.listeEmprunts.remove(remove);
+	public void RendreLivre(Emprunt emprunt) {
+		this.listeLivreARendre.remove(emprunt.getLivre());
+		this.listeLivre.add(emprunt.getLivre());
+		this.listeEmprunts.remove(emprunt);
+		this.setCmbLivreARendre();
+		this.setCmbLivreDispo();
 	}
 
-	public void AjouterEmprunt(Livre livre, Usager usager, Date date_emprunt, Date date_rendu) {
-		this.ihm.comboBoxLivre.removeItem(livre);
+	public void AjouterEmprunt(Livre livre, Usager usager, DateTime date_emprunt, DateTime date_rendu) {
 		this.listeLivre.remove(livre);
-		this.ihm.comboBoxLivreARendre.addItem(livre);
 		this.listeLivreARendre.add(livre);
-		new Emprunt(livre.getId(), usager.getId(), date_emprunt, date_rendu);
+		this.setCmbLivreARendre();
+		this.setCmbLivreDispo();
+		Emprunt emprunt = new Emprunt(livre, usager, date_emprunt, date_rendu);
+		this.listeEmprunts.add(emprunt);
 	}
 
 	public void AjouterUsager(String nom) {
-		this.listeUsager.add(new Usager(nom));
+		Usager usager = new Usager(nom);
+		this.listeUsager.add(usager);
+		this.ihm.comboBoxUsager.addItem(usager);
+		
 
 	}
 
 	public void AjouterLivre(String titre, int annee, String nom_auteur, String prenom_auteur, String editeur) {
-
-		this.listeLivre.add(new Livre(titre, annee, nom_auteur, prenom_auteur, editeur));
+        Livre livre = new Livre(titre, annee, nom_auteur, prenom_auteur, editeur);
+		this.listeLivre.add(livre);
+		this.ihm.comboBoxLivre.addItem(livre);
 	}
 
 	private void setListeUsager() {
@@ -112,8 +124,9 @@ public class Controller {
 			while (result.next()) {
 				Usager user = new Usager(result.getInt("id"), result.getString("nom"));
 				this.listeUsager.add(user);
-				this.ihm.comboBoxUsager.addItem(user);
+				
 			}
+			this.setCmbUsager();
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -122,31 +135,36 @@ public class Controller {
 	private void setListeLivreDisponible() {
 		this.listeLivre = new ArrayList<Livre>();
 
-		ResultSet result = PDO.sql(
-				"SELECT * FROM Livre WHERE Livre.id IN(SELECT id_livre FROM Emprunt WHERE Emprunt.date_rendu != 'null') OR Livre.id NOT IN(SELECT id_livre FROM Emprunt );");
+		ResultSet result = PDO.sql("SELECT * FROM Livre WHERE Livre.id NOT IN(SELECT id_livre FROM Emprunt WHERE Emprunt.date_rendu = 'null');");
+		/*"SELECT * FROM Livre WHERE Livre.id NOT IN(SELECT id_livre FROM Emprunt WHERE Emprunt.date_rendu = 'null') OR Livre.id NOT IN(SELECT id_livre FROM Emprunt )*/
 
 		try {
 			while (result.next()) {
 				Livre livre = new Livre(result.getInt("id"), result.getString("titre"), result.getInt("annee"),
 						result.getString("nom_auteur"), result.getString("prenom_auteur"), result.getString("editeur"));
 				this.listeLivre.add(livre);
-				this.ihm.comboBoxLivre.addItem(livre);
 			}
+			this.setCmbLivreDispo();
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
+		
 	}
 
 	private void setListeEmprunts() {
 		this.listeEmprunts = new ArrayList<Emprunt>();
-		DateFormat formatDate = new SimpleDateFormat("dd--MMMM--yyyy");
+		SimpleDateFormat formatDate = new SimpleDateFormat("EEE MMM d hh:mm:ss z yyyy");
 		ResultSet result = PDO.sql("SELECT * FROM Emprunt WHERE date_rendu = 'null'");
 		// TODO Mauvaise gestion de la Date SQLITE par JAVA ou inversement, à
 		// corriger.
 		try {
 			while (result.next()) {
-				Emprunt emprunt = new Emprunt(result.getInt("id"), result.getInt("id_livre"),
-						result.getInt("id_usager"), result.getDate("date_emprunt"), result.getDate("date_rendu"));
+				ResultSet UsagerResult = PDO.sql("SELECT * FROM Usager WHERE id = "+result.getInt("id_usager"));
+				Usager usager = new Usager(UsagerResult);
+				ResultSet LivreResult = PDO.sql("SELECT * FROM Livre WHERE id = "+result.getInt("id_livre"));
+				Livre livre = new Livre(LivreResult);
+				Emprunt emprunt = new Emprunt(result.getInt("id"), livre,
+						usager, DateTime.parse(result.getString("date_emprunt")), (result.getString("date_rendu")).compareTo("null") == 0 ? null : DateTime.parse(result.getString("date_rendu")));
 				this.listeEmprunts.add(emprunt);
 				emprunt.toString();
 
@@ -162,16 +180,42 @@ public class Controller {
 
 		ResultSet result = PDO.sql(
 				"SELECT * FROM Livre WHERE Livre.id IN(SELECT id_livre FROM Emprunt WHERE Emprunt.date_rendu = 'null');");
+		
 
 		try {
 			while (result.next()) {
 				Livre livre = new Livre(result.getInt("id"), result.getString("titre"), result.getInt("annee"),
 						result.getString("nom_auteur"), result.getString("prenom_auteur"), result.getString("editeur"));
 				this.listeLivreARendre.add(livre);
-				this.ihm.comboBoxLivreARendre.addItem(livre);
 			}
+			this.setCmbLivreARendre();
 		} catch (Exception e) {
 			// TODO: handle exception
+		}
+		
+	}
+	
+	private void setCmbLivreARendre() {
+		Collections.sort(listeEmprunts);
+		
+		this.ihm.comboBoxLivreARendre.removeAllItems();
+		for (Emprunt emprunt : listeEmprunts) {
+			this.ihm.comboBoxLivreARendre.addItem(emprunt);
+		}
+		
+	}
+	private void setCmbLivreDispo() {
+		Collections.sort(listeLivre);
+		this.ihm.comboBoxLivre.removeAllItems();
+		for (Livre livre : listeLivre) {
+			this.ihm.comboBoxLivre.addItem(livre);
+		}
+	}
+	private void setCmbUsager() {
+		Collections.sort(listeUsager);
+		this.ihm.comboBoxUsager.removeAllItems();
+		for (Usager usager : listeUsager) {
+			this.ihm.comboBoxUsager.addItem(usager);
 		}
 	}
 

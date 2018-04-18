@@ -3,9 +3,11 @@ package beans;
 import java.sql.ResultSet;
 import java.util.Date;
 
+import org.joda.time.DateTime;
+
 import helpers.PDO;
 
-public class Emprunt extends Tables {
+public class Emprunt extends Tables implements Comparable<Emprunt>{
 
 	private final static String NOMTABLE = "Emprunt";
 	private final String CHAMPSID = "id";
@@ -15,10 +17,10 @@ public class Emprunt extends Tables {
 	private final String CHAMPSRENDU = "date_rendu";
 
 	private int id;
-	private int id_livre;
-	private int id_usager;
-	private Date date_emprunt;
-	private Date date_rendu;
+	private Livre livre;
+	private Usager usager;
+	private DateTime date_emprunt;
+	private DateTime date_rendu;
 
 	/**
 	 * 
@@ -26,9 +28,9 @@ public class Emprunt extends Tables {
 	 * @param id_usager
 	 * @param date_emprunt
 	 */
-	public Emprunt(int id_livre, int id_usager, Date date_emprunt) {
-		this.id_livre = id_livre;
-		this.id_usager = id_usager;
+	public Emprunt(Livre livre, Usager usager, DateTime date_emprunt) {
+		this.livre = livre;
+		this.usager = usager;
 		this.date_emprunt = date_emprunt;
 		this.id = this.enregistrerBdd();
 	}
@@ -40,9 +42,9 @@ public class Emprunt extends Tables {
 	 * @param date_emprunt
 	 * @param date_rendu
 	 */
-	public Emprunt(int id_livre, int id_usager, Date date_emprunt, Date date_rendu) {
-		this.id_livre = id_livre;
-		this.id_usager = id_usager;
+	public Emprunt(Livre livre, Usager usager, DateTime date_emprunt, DateTime date_rendu) {
+		this.livre =livre;
+		this.usager = usager;
 		this.date_emprunt = date_emprunt;
 		this.date_rendu = date_rendu;
 		this.id = this.enregistrerBdd();
@@ -56,9 +58,9 @@ public class Emprunt extends Tables {
 	 * @param date_emprunt
 	 * @param date_rendu
 	 */
-	public Emprunt(int id, int id_livre, int id_usager, Date date_emprunt, Date date_rendu) {
-		this.id_livre = id_livre;
-		this.id_usager = id_usager;
+	public Emprunt(int id, Livre livre, Usager usager, DateTime date_emprunt, DateTime date_rendu) {
+		this.livre = livre;
+		this.usager = usager;
 		this.date_emprunt = date_emprunt;
 		this.date_rendu = date_rendu;
 		this.id = id;
@@ -72,45 +74,44 @@ public class Emprunt extends Tables {
 		this.id = id;
 	}
 
-	public int getId_livre() {
-		return this.id_livre;
+	public Livre getLivre() {
+		return this.livre;
 	}
 
-	public void setId_livre(int id_livre) {
-		this.id_livre = id_livre;
+	public void setLivre(Livre livre) {
+		this.livre = livre;
 	}
 
-	public int getId_usager() {
-		return this.id_usager;
+	public Usager getUsager() {
+		return this.usager;
 	}
 
-	public void setId_usager(int id_usager) {
-		this.id_usager = id_usager;
+	public void setUsager(Usager usager) {
+		this.usager = usager;
 	}
 
-	public Date getDate_emprunt() {
+	public DateTime getDate_emprunt() {
 		return this.date_emprunt;
 	}
 
-	public void setDate_emprunt(Date date_emprunt) {
+	public void setDate_emprunt(DateTime date_emprunt) {
 		this.date_emprunt = date_emprunt;
 	}
 
-	public Date getDate_rendu() {
+	public DateTime getDate_rendu() {
 		return this.date_rendu;
 	}
 
-	public void setDate_rendu(Date date_rendu) {
+	public void setDate_rendu(DateTime date_rendu) {
 		this.date_rendu = date_rendu;
 	}
 
 	@Override
 	protected int enregistrerBdd() {
-
 		int result = 0;
 		String insert = "INSERT INTO " + NOMTABLE + " (" + this.CHAMPSIDLIVRE + "," + this.CHAMPSIDUSAGER + ","
-				+ this.CHAMPSEMPRUNT + "," + this.CHAMPSRENDU + ") VALUES ('" + this.id_livre + "','" + this.id_usager
-				+ "','" + this.date_emprunt + "','" + this.date_rendu + "')";
+				+ this.CHAMPSEMPRUNT + "," + this.CHAMPSRENDU + ") VALUES ('" + this.livre.getId() + "','" + this.usager.getId()
+				+ "','" + this.date_emprunt.toString() + "','" + (this.date_rendu == null ? null : this.date_rendu.toString()) + "')";
 		PDO.create(insert);
 
 		result = this.maxId();
@@ -121,9 +122,9 @@ public class Emprunt extends Tables {
 	@Override
 	public void modifierBdd() {
 		// TODO Auto-generated method stub
-		String update = "UPDATE " + NOMTABLE + " SET " + this.CHAMPSIDLIVRE + " ='" + this.id_livre + "', "
-				+ this.CHAMPSIDUSAGER + " ='" + this.id_usager + "', " + this.CHAMPSEMPRUNT + " ='" + this.date_emprunt
-				+ "', " + this.CHAMPSRENDU + " ='" + this.date_rendu + "' " + "WHERE " + this.CHAMPSID + " ='"
+		String update = "UPDATE " + NOMTABLE + " SET " + this.CHAMPSIDLIVRE + " =" + this.livre.getId() + ", "
+				+ this.CHAMPSIDUSAGER + " =" + this.usager.getId() + ", " + this.CHAMPSEMPRUNT + " ='" + this.date_emprunt
+				+ "', " + this.CHAMPSRENDU + " ='" + this.date_rendu + "' " + "WHERE " + this.CHAMPSID + " ="
 				+ this.id;
 		PDO.create(update);
 	}
@@ -139,7 +140,7 @@ public class Emprunt extends Tables {
 	protected int maxId() {
 
 		int maxId = 0;
-		String SELECT = "SELECT MAX('" + this.CHAMPSID + "') AS 'id' FROM " + NOMTABLE;
+		String SELECT = "SELECT MAX(" + this.CHAMPSID + ") AS id FROM " + NOMTABLE;
 
 		ResultSet result = PDO.sql(SELECT);
 
@@ -151,13 +152,18 @@ public class Emprunt extends Tables {
 			// TODO: handle exception
 		}
 
+		System.out.println(maxId);
 		return maxId;
 
 	}
 
 	@Override
 	public String toString() {
-		return "" + this.id + " : " + this.date_emprunt + " : " + this.date_rendu + " : " + this.id_livre + " : "
-				+ this.id_usager + " : ";
+		return "" + this.livre.getTitre();
+	}
+
+	public int compareTo(Emprunt emprunt) {
+		
+		return this.getDate_emprunt().compareTo(emprunt.getDate_emprunt());
 	}
 }

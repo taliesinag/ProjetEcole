@@ -24,7 +24,9 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import org.eclipse.wb.swing.FocusTraversalOnArray;
+import org.joda.time.DateTime;
 
+import beans.Emprunt;
 import beans.Livre;
 import beans.Usager;
 import controller.Controller;
@@ -78,8 +80,9 @@ public class IhmMain {
 	private JTextField textFieldUsagerEmprunteur;
 	private JMenuItem mnNouveauUsager;
 	private JMenuItem mnNouveauLivre;
-	public JComboBox<Livre> comboBoxLivreARendre;
+	public JComboBox<Emprunt> comboBoxLivreARendre;
 	private JLabel lblUsager;
+	private JMenuItem mntmJeeUsager;
 
 	/**
 	 * Create the application.
@@ -173,19 +176,16 @@ public class IhmMain {
 		this.menu.setEnabled(false);
 		this.menuBar.add(this.menu);
 
-		this.mnNewUsagers = new JMenu("Ajouter des Usagers Aléatoire");
-		this.mnNewUsagers.addMenuListener(new MenuListener() {
-			public void menuCanceled(MenuEvent arg0) {
-			}
-
-			public void menuDeselected(MenuEvent arg0) {
-			}
-
-			public void menuSelected(MenuEvent arg0) {
+		this.mnNewUsagers = new JMenu("BDD");
+		this.menuBar.add(this.mnNewUsagers);
+		
+		mntmJeeUsager = new JMenuItem("JEE Usager");
+		mntmJeeUsager.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
 				IhmMain.this.ctrl.usagerBdd();
 			}
 		});
-		this.menuBar.add(this.mnNewUsagers);
+		mnNewUsagers.add(mntmJeeUsager);
 
 		this.layeredPane = new JLayeredPane();
 		this.frmMaPetiteBibliothque.getContentPane().add(this.layeredPane, BorderLayout.CENTER);
@@ -206,7 +206,12 @@ public class IhmMain {
 		this.btnRendreLeLivre.setBounds(372, 250, 142, 23);
 		this.panelRendreEmprunt.add(this.btnRendreLeLivre);
 
-		this.comboBoxLivreARendre = new JComboBox<Livre>();
+		this.comboBoxLivreARendre = new JComboBox<Emprunt>();
+		comboBoxLivreARendre.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				IhmMain.this.textFieldUsagerEmprunteur.setText(comboBoxLivreARendre.getItemAt(comboBoxLivreARendre.getSelectedIndex()).getUsager().getNom());
+			}
+		});
 		this.comboBoxLivreARendre.setBounds(291, 53, 301, 20);
 		this.panelRendreEmprunt.add(this.comboBoxLivreARendre);
 
@@ -307,7 +312,7 @@ public class IhmMain {
 		this.btnAjoutEmprunt = new JButton("Valider l'emprunt");
 		this.btnAjoutEmprunt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				Date emprunt = new Date();
+				DateTime emprunt = new DateTime();
 				try {
 
 				} catch (Exception e) {

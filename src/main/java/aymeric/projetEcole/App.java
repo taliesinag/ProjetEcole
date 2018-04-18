@@ -18,9 +18,6 @@ public class App {
 			public void run() {
 				try {
 					Controller ctrl = new Controller();
-					IhmMain window = new IhmMain(ctrl);
-					ctrl.setIhm(window);
-					window.getframe().setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

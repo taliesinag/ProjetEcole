@@ -1,10 +1,11 @@
 package beans;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import helpers.PDO;
 
-public class Usager extends Tables {
+public class Usager extends Tables implements Comparable<Usager> {
 	private static final String NOMTABLE = "Usager";
 	private final String CHAMPSID = "id";
 	private final String CHAMPSNOM = "nom";
@@ -19,6 +20,12 @@ public class Usager extends Tables {
 	public Usager(String nom) {
 		this.nom = nom;
 		this.id = this.enregistrerBdd();
+	}
+	public Usager(ResultSet result) throws SQLException {
+		result.next();
+		this.nom = result.getString(CHAMPSNOM);
+		this.id = result.getInt(CHAMPSID);
+		
 	}
 
 	/**
@@ -62,7 +69,7 @@ public class Usager extends Tables {
 	protected int maxId() {
 
 		int maxId = 0;
-		String SELECT = "SELECT MAX('" + this.CHAMPSID + "') AS 'id' FROM " + NOMTABLE;
+		String SELECT = "SELECT MAX(" + this.CHAMPSID + ") AS id FROM " + NOMTABLE;
 
 		ResultSet result = PDO.sql(SELECT);
 
@@ -113,5 +120,10 @@ public class Usager extends Tables {
 	@Override
 	public String toString() {
 		return this.nom;
+	}
+
+	public int compareTo(Usager usager) {
+		// TODO Auto-generated method stub
+		return (this.nom.toLowerCase()).compareTo(usager.getNom().toLowerCase());
 	}
 }
