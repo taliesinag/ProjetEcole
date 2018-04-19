@@ -83,6 +83,7 @@ public class IhmMain {
 	public JComboBox<Emprunt> comboBoxLivreARendre;
 	private JLabel lblUsager;
 	private JMenuItem mntmJeeUsager;
+	private JMenuItem mntmJeeLivres;
 
 	/**
 	 * Create the application.
@@ -185,6 +186,15 @@ public class IhmMain {
 				IhmMain.this.ctrl.usagerBdd();
 			}
 		});
+		
+		mntmJeeLivres = new JMenuItem("JEE Livres");
+		mntmJeeLivres.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				IhmMain.this.ctrl.livreBdd();
+				
+			}
+		});
+		mnNewUsagers.add(mntmJeeLivres);
 		mnNewUsagers.add(mntmJeeUsager);
 
 		this.layeredPane = new JLayeredPane();
@@ -199,19 +209,18 @@ public class IhmMain {
 		this.btnRendreLeLivre = new JButton("Rendre le livre");
 		this.btnRendreLeLivre.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				IhmMain.this.ctrl.RendreLivre(IhmMain.this.comboBoxLivreARendre
-						.getItemAt(IhmMain.this.comboBoxLivreARendre.getSelectedIndex()));
+				if(IhmMain.this.comboBoxLivreARendre.getItemCount() >0) {
+					IhmMain.this.ctrl.RendreLivre(IhmMain.this.comboBoxLivreARendre
+							.getItemAt(IhmMain.this.comboBoxLivreARendre.getSelectedIndex()));
+				}
+				
 			}
 		});
 		this.btnRendreLeLivre.setBounds(372, 250, 142, 23);
 		this.panelRendreEmprunt.add(this.btnRendreLeLivre);
 
 		this.comboBoxLivreARendre = new JComboBox<Emprunt>();
-		comboBoxLivreARendre.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				IhmMain.this.textFieldUsagerEmprunteur.setText(comboBoxLivreARendre.getItemAt(comboBoxLivreARendre.getSelectedIndex()).getUsager().getNom());
-			}
-		});
+		//TODO Reussir à ajouter le nom de l'emprunteur
 		this.comboBoxLivreARendre.setBounds(291, 53, 301, 20);
 		this.panelRendreEmprunt.add(this.comboBoxLivreARendre);
 
@@ -312,16 +321,18 @@ public class IhmMain {
 		this.btnAjoutEmprunt = new JButton("Valider l'emprunt");
 		this.btnAjoutEmprunt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				DateTime emprunt = new DateTime();
-				try {
+				if(IhmMain.this.comboBoxLivre.getItemCount()>0) {
+					DateTime emprunt = new DateTime();
+					try {
 
-				} catch (Exception e) {
-					// TODO: handle exception
+					} catch (Exception e) {
+						// TODO: handle exception
+					}
+					IhmMain.this.ctrl.AjouterEmprunt(
+							IhmMain.this.comboBoxLivre.getItemAt(IhmMain.this.comboBoxLivre.getSelectedIndex()),
+							IhmMain.this.comboBoxUsager.getItemAt(IhmMain.this.comboBoxUsager.getSelectedIndex()), emprunt,
+							null);
 				}
-				IhmMain.this.ctrl.AjouterEmprunt(
-						IhmMain.this.comboBoxLivre.getItemAt(IhmMain.this.comboBoxLivre.getSelectedIndex()),
-						IhmMain.this.comboBoxUsager.getItemAt(IhmMain.this.comboBoxUsager.getSelectedIndex()), emprunt,
-						null);
 			}
 		});
 		this.btnAjoutEmprunt.setBounds(372, 314, 167, 23);

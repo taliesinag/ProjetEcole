@@ -85,11 +85,23 @@ public class Controller {
 		}
 		this.setListeUsager();
 	}
+	
+	public void livreBdd() {
+		String livres[] = { "111", "222", "333", "444", "555", "666", "777", "888",
+				"999", "aaa", "bbb", "ccc" };
+		for (String string : livres) {
+			new Livre(string, 2006, string, string, string);
+		}
+		this.setCmbLivreDispo();
+	}
 
 	public void RendreLivre(Emprunt emprunt) {
+		emprunt.setDate_rendu(new DateTime());
+		emprunt.modifierBdd();
 		this.listeLivreARendre.remove(emprunt.getLivre());
 		this.listeLivre.add(emprunt.getLivre());
 		this.listeEmprunts.remove(emprunt);
+		
 		this.setCmbLivreARendre();
 		this.setCmbLivreDispo();
 	}
