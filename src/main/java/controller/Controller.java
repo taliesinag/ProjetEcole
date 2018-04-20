@@ -92,7 +92,7 @@ public class Controller {
 		for (String string : livres) {
 			new Livre(string, 2006, string, string, string);
 		}
-		this.setCmbLivreDispo();
+		this.setListeLivreDisponible();
 	}
 
 	public void RendreLivre(Emprunt emprunt) {

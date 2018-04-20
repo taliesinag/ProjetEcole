@@ -226,8 +226,10 @@ public class IhmMain {
 		this.comboBoxLivreARendre = new JComboBox<Emprunt>();
 		comboBoxLivreARendre.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				IhmMain.this.textFieldUsagerEmprunteur.setText(IhmMain.this.comboBoxLivreARendre.getItemAt(IhmMain.this.comboBoxLivreARendre.getSelectedIndex()).getUsager().getNom());
-			}
+				if(e.getStateChange() == ItemEvent.SELECTED) {
+					IhmMain.this.textFieldUsagerEmprunteur.setText(IhmMain.this.comboBoxLivreARendre.getItemAt(IhmMain.this.comboBoxLivreARendre.getSelectedIndex()).getUsager().getNom());
+						}
+				}
 		});
 		
 		this.comboBoxLivreARendre.setBounds(291, 53, 301, 20);
