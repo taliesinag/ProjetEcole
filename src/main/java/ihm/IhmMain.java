@@ -30,6 +30,10 @@ import beans.Emprunt;
 import beans.Livre;
 import beans.Usager;
 import controller.Controller;
+import java.awt.event.InputMethodListener;
+import java.awt.event.InputMethodEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 
 public class IhmMain {
 
@@ -220,7 +224,12 @@ public class IhmMain {
 		this.panelRendreEmprunt.add(this.btnRendreLeLivre);
 
 		this.comboBoxLivreARendre = new JComboBox<Emprunt>();
-		//TODO Reussir à ajouter le nom de l'emprunteur
+		comboBoxLivreARendre.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				IhmMain.this.textFieldUsagerEmprunteur.setText(IhmMain.this.comboBoxLivreARendre.getItemAt(IhmMain.this.comboBoxLivreARendre.getSelectedIndex()).getUsager().getNom());
+			}
+		});
+		
 		this.comboBoxLivreARendre.setBounds(291, 53, 301, 20);
 		this.panelRendreEmprunt.add(this.comboBoxLivreARendre);
 
